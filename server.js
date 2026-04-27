@@ -1,76 +1,88 @@
-import express from 'express'
-import mysql from 'mysql2/promise'
+import express from 'express';
+import mysql from 'mysql2/promise';
+import cors from 'cors';
 
+const app = express();
+app.use(express.json());
+app.use(cors());
 
-const app = express()
-app.use(express.json())
-
+// create pool
 const pool = mysql.createPool({
   host: 'localhost',
-  user: 'root',        
-  password: '', 
-  database: 'user_db',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
-})
+  user: 'root',
+  password: '',
+  database: 'user_db'
+});
 
-
+// test route
 app.get('/', (req, res) => {
-  res.send('Hello Narith!')
-})
+  res.send('API is running');
+});
 
-let users = []
-//list
+// GET users
 app.get('/users', async (req, res) => {
   try {
-    const connection = await pool.getConnection()
-    const [rows] = await connection.query('SELECT * FROM acc ')
-    connection.release()
-    res.send(rows)
-  } catch (error) {
-    res.status(500).send({ message: 'Database error', error: error.message })
+    const [rows] = await pool.query('SELECT * FROM acc');
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-})
+});
 
-// Create user
+// CREATE user
 app.post('/users', async (req, res) => {
-  try {
-    const connection = await pool.getConnection()
-    await connection.query('INSERT INTO acc (name) VALUES (?)', [req.body.name])
-    const [rows] = await connection.query('SELECT * FROM acc WHERE name = ?', [req.body.name])
-    connection.release()
-    res.status(201).send(rows[0])
-  } catch (error) {
-    res.status(500).send({ message: 'Database error', error: error.message })
-  }
-}); 
+  const { name } = req.body;
 
-// update
+  if (!name) {
+    return res.status(400).json({ message: 'Name is required' });
+  }
+
+  try {
+    const [result] = await pool.query(
+      'INSERT INTO acc (name) VALUES (?)',
+      [name]
+    );
+
+    res.status(201).json({
+      id: result.insertId,
+      name
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// UPDATE user
 app.put('/users/:id', async (req, res) => {
-  try {
-    const connection = await pool.getConnection()
-    await connection.query('UPDATE acc SET name = ? WHERE id = ?', [req.body.name, req.params.id])
-    const [rows] = await connection.query('SELECT * FROM acc WHERE id = ?', [req.params.id])
-    connection.release()
-    res.send(rows[0])
-  } catch (error) {
-    res.status(500).send({ message: 'Database error', error: error.message })
-  }
-})
+  const { name } = req.body;
 
-// delete
+  try {
+    await pool.query(
+      'UPDATE acc SET name = ? WHERE id = ?',
+      [name, req.params.id]
+    );
+
+    res.json({ id: req.params.id, name });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE user
 app.delete('/users/:id', async (req, res) => {
   try {
-    const connection = await pool.getConnection()
-    await connection.query('DELETE FROM acc WHERE id = ?', [req.params.id])
-    connection.release()
-    res.send({ message: 'User deleted successfully' })
-  } catch (error) {
-    res.status(500).send({ message: 'Database error', error: error.message })
-  }
-})
+    await pool.query(
+      'DELETE FROM acc WHERE id = ?',
+      [req.params.id]
+    );
 
+    res.json({ message: 'Deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// start server
 app.listen(3000, () => {
-  console.log('Server is running on http://localhost:3000')
-})
+  console.log('Server running on http://localhost:3000');
+});
