@@ -1,13 +1,14 @@
 import User from '../models/User.js';
+import { BaseController } from './baseController.js';
 
-export class UserController {
+export class UserController extends BaseController {
   // GET all users
   async index(req, res) {
     try {
       const users = await User.getAll();
-      res.json(users);
+      this.success(res, 200 ,"Users retrieved successfully", users);
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      this.error(res, err.message, 500);
     }
   }
 
@@ -21,12 +22,9 @@ export class UserController {
 
     try {
       const result = await User.create(name);
-      res.status(201).json({
-        id: result.insertId,
-        name
-      });
+      this.success(res, 201, "User created successfully", { id: result.insertId, name });
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      this.error(res, err.message, 500);
     }
   }
 
@@ -46,9 +44,9 @@ export class UserController {
       }
 
       await User.update(id, name);
-      res.json({ id, name });
+      this.success(res, 200, "User updated successfully", { id, name });
     } catch (err) {
-      res.status(500).json({ error: err.message });
+        this.error(res, err.message, 500);
     }
   }
 
@@ -63,9 +61,9 @@ export class UserController {
       }
 
       await User.delete(id);
-      res.json({ message: 'Deleted successfully' });
+       this.success(res, 200, "User deleted successfully");
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      this.error(res, err.message, 500);
     }
   }
 }
