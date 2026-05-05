@@ -8,5 +8,6 @@ router.get('/users', (req, res) => controller.index(req, res));
 router.post('/users', (req, res) => controller.create(req, res));
 router.put('/users/:id', (req, res) => controller.update(req, res));
 router.delete('/users/:id', (req, res) => controller.delete(req, res));
+router.get('/users/filter', (req, res) => controller.find(req, res));
 
 export default router;

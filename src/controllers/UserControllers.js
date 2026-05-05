@@ -1,5 +1,6 @@
 import User from '../models/User.js';
-import { BaseController } from './baseController.js';
+import { BaseController } from './BaseController.js';
+import BaseModel from '../models/BaseModel.js';
 
 export class UserController extends BaseController {
   // GET all users
@@ -61,7 +62,17 @@ export class UserController extends BaseController {
       }
 
       await User.delete(id);
-       this.success(res, 200, "User deleted successfully");
+      this.success(res, 200, "User deleted successfully");
+    } catch (err) {
+      this.error(res, err.message, 500);
+    }
+  }
+
+  //Filter User
+  async find(req, res) {
+    try {
+      const user = await User.find(req.query);
+      this.success(res, 200, "User retrieved successfully", user);
     } catch (err) {
       this.error(res, err.message, 500);
     }

@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import userRoutes from './src/routes/userRoutes.js';
+import ProductRoutes from './src/routes/ProductRoute.js'; 
 import pool from './src/config/db.js';
 
 const app = express();
@@ -28,6 +29,7 @@ app.get('/test', async (req, res) => {
 });
 
 app.use('/', userRoutes);
+app.use('/', ProductRoutes);
 
 // Start server
 app.listen(PORT, () => {
